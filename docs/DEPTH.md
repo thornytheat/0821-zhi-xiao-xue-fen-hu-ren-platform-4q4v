@@ -13,6 +13,7 @@
 | M5 运行对账 | 对照输入、采信和隔离行 | `POST /api/stages/balance` | `app/modules/reconcile.py` | `tests/test_reconcile.py` |
 | M6 批次复核 | 执行批次并签发或暂缓 | `POST /api/runs、PATCH /api/runs/<id>` | `app/review/service.py` | `tests/test_review.py` |
 | M7 证据交付 | 下载复核清单 | `GET /api/runs/<id>/evidence` | `app/evidence/render.py` | `tests/test_evidence.py` |
+| M8 签发后变动 | 申请层撤回/补正复算、当前学分、原编号凭证快照 | `GET /api/workbench/credits`、`POST /api/applications/<id>/withdrawals`、`POST /api/applications/<id>/corrections` | `app/credits.py`、`app/lifecycle.py` | `tests/test_credit_lifecycle.py` |
 
 ## 输入陷阱
 
@@ -33,5 +34,7 @@
 ## 领域反例
 
 权重为课程互认学分。最多 12 门校内课程。外校课与校内课均只有一个名额，先最大化学分，再比较审批等级之和，最后按课程键稳定择一。最低学分由培养方案给出。
+
+签发后撤回外校课程时，只冻结受影响申请并复算：未撤回的已签发配对继续保留，被释放名额可由已登记等价关系或换课补正补入。复算总分低于最低学分则整份抵扣的当前可用学分记为 0；达到最低学分则其余配对继续有效，换课补正达标后可恢复。同一逻辑时间同时收到撤回和旧课程补正时，撤回优先；撤回生效后到达的旧补正记录标记为 `STALE_CORRECTION`，不能恢复已撤回课程。凭证按原签发编号读取签发时冻结的字节，不随后续复算改变。
 
 `sample_data/incoming.csv` 的 0003 组触发预检异常，0004 组触发业务判定。`tests/test_calculate.py` 还核对逐组结论和证据字段。

@@ -40,6 +40,28 @@
     <div class="review-actions"><button name="decision" value="HELD">暂缓</button><button class="action" name="decision" value="APPROVED">签发</button></div>
     <a id="evidence">下载复核证据</a>
   </form>
+  <section class="credit-desk" aria-labelledby="credit-desk-title">
+    <div class="panel-head"><h2 id="credit-desk-title">签发后学分变动</h2><button id="refresh-credits" type="button">刷新学分</button></div>
+    <p class="hint">撤回只停受影响申请；低于培养方案最低学分时，该申请当前可用学分为 0，其他申请继续有效。</p>
+    <div class="scroll"><table id="credit-rows" aria-label="当前可用学分"></table></div>
+    <form id="credit-event">
+      <label>申请编号 <input name="application_id" required placeholder="如 0001"></label>
+      <p id="credit-target"></p>
+      <label>外校课程 <input name="external_course" required placeholder="如 1"></label>
+      <label>校内配对（可选） <input name="local_course" placeholder="如 2"></label>
+      <label>处理类型
+        <select name="event_type">
+          <option value="withdrawal">撤回课程</option>
+          <option value="correction">旧配对补正学分</option>
+          <option value="replacement">换课补正</option>
+        </select>
+      </label>
+      <label>换课编号 <input name="new_external_course" placeholder="换课时填写"></label>
+      <label>补正学分 <input name="credits" type="number" min="0" step="1" placeholder="如 6"></label>
+      <div class="review-actions"><button class="action" type="submit">提交变动</button></div>
+    </form>
+    <pre id="credit-detail" class="credit-detail" aria-live="polite"></pre>
+  </section>
 </aside>
 {% endmacro %}
 {% macro status() %}

@@ -4,6 +4,14 @@ from time import monotonic
 
 from app.business import DomainIssue
 from app.config import RULE_VERSION
+from app.lifecycle import (
+    correct,
+    create_application,
+    issue_certificates,
+    settle,
+    withdraw,
+    workbench,
+)
 from app.modules.pipeline import run
 
 
@@ -23,7 +31,7 @@ def execute(store, data):
     report = run(data)
     report['manifest'] = dict(sha256=fingerprint, version=RULE_VERSION, created=now(),
                               duration_ms=round((monotonic()-start)*1000,3), bytes=len(data), run_id=run_id)
-    return store.register(run_id,report)
+    return store.register(run_id,report,data)
 
 
 def review(store, run_id, values):
@@ -39,4 +47,17 @@ def review(store, run_id, values):
         raise DomainIssue('RUN_FINALIZED')
     if status == 'APPROVED' and not current['report']['balance']['releasable']:
         raise DomainIssue('UNRESOLVED_ISSUES')
-    return store.revise(run_id,revision,status,note.strip(),now())
+    updated = store.revise(run_id,revision,status,note.strip(),now())
+    if status == 'APPROVED':
+        issue_certificates(store, updated, now())
+        updated = store.load(run_id)
+    return updated
+
+
+# Compatibility names for post-issuance use cases.
+withdraw_course = withdraw
+register_withdrawal = withdraw
+correct_application = correct
+register_correction = correct
+create_position = create_application
+credit_workbench = workbench
